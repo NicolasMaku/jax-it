@@ -4,10 +4,21 @@ import EventTable from "../components/event/EventTable.tsx";
 
 function Showroom() {
     const[events, setEvents] = useState<IEvent[]>([]);
+    const[eventsFilter, setEventsFilter] = useState<IEvent[]>([]);
+    const[loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const loadTime = setTimeout(() => {
+            setLoading(false);
+        }, 1000)
+
         fetchData();
+
+        return () => {
+            clearTimeout(loadTime);
+        }
     }, []);
+
 
     const fetchData = async () => {
         const eventsData: IEvent[] = [
@@ -110,7 +121,9 @@ function Showroom() {
     return (
         <div>
             <h1>Evenements:</h1>
-            <EventTable events={events}/>
+            { loading && <p>Loading</p> }
+            { !loading && <EventTable events={events}/> }
+
         </div>
     )
 }
