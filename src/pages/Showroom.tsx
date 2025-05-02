@@ -149,15 +149,30 @@ function Showroom() {
 
         let filtered = getData();
 
-        if (data.dateMin !== '' && data.dateMin !== undefined) {
+        if (data.dateMin !== '' && data.dateMin !== undefined || data.dateMax !== '' && data.dateMax !== undefined) {
             filtered = filtered.filter(event => {
-                return event.dateDebut >= minD && event.dateDebut <= maxD;
+                if (data.dateMin !== '' && data.dateMax !== '')
+                    return event.dateDebut >= minD && event.dateDebut <= maxD;
+
+                if (data.dateMin !== '' && data.dateMax === '')
+                    return event.dateDebut >= minD;
+
+                if (data.dateMin === '' && data.dateMax !== '')
+                    return event.dateDebut <= maxD;
             })
         }
 
-        if (data.prixMin !== '' && data.prixMin !== undefined) {
+        if (data.prixMin !== '' && data.prixMin !== undefined || data.prixMax !== '' && data.prixMax !== undefined) {
             filtered = filtered.filter(event => {
-                return event.prix >= data.prixMin && event.prix <= data.prixMax;
+                if (data.prixMin !== '' && data.prixMax !== '')
+                    return event.prix >= data.prixMin && event.prix <= data.prixMax;
+
+                if (data.prixMin !== '' && data.prixMax === '')
+                    return event.prix >= data.prixMin;
+
+                if (data.prixMin === '' && data.prixMax !== '')
+                    return event.prix <= data.prixMax;
+
             })
         }
 
