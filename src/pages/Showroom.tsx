@@ -1,11 +1,28 @@
 import {useEffect, useState} from "react";
 import {IEvent} from "../components/event/EventTable.tsx";
-import EventTable from "../components/event/EventTable.tsx";
+import EventTable from "../components/event/EventTable.tsx"
+import {SubmitHandler, useForm} from "react-hook-form";
+
+type FormFields = {
+    dateMin: string,
+    dateMax: string,
+    prixMin: number,
+    prixMax: number,
+    enfant: boolean,
+}
 
 function Showroom() {
     const[events, setEvents] = useState<IEvent[]>([]);
     const[eventsFilter, setEventsFilter] = useState<IEvent[]>([]);
     const[loading, setLoading] = useState(true);
+    const[searching, setSearching] = useState(false);
+
+    // formulaire
+    const {
+        register,
+        handleSubmit,
+        formState: {errors, isSubmitting},
+    } = useForm<FormFields>();
 
     useEffect(() => {
         const loadTime = setTimeout(() => {
@@ -19,8 +36,12 @@ function Showroom() {
         }
     }, []);
 
+    // useEffect(() => {
+    //     console.log("Le formulaire est en submit")
+    //     setSearching(true);
+    // }, [events]);
 
-    const fetchData = async () => {
+    const getData = () => {
         const eventsData: IEvent[] = [
             {
                 nom: "MadaJazzCar",
@@ -114,15 +135,84 @@ function Showroom() {
             }
         ];
 
+        return eventsData;
+    }
 
-        setEvents(eventsData);
+    const fetchData = async () => {
+        setEvents(getData);
+    }
+
+    const filterData = async (data) => {
+        setLoading(true);
+        const minD = new Date(data.dateMin);
+        const maxD = new Date(data.dateMax);
+
+        let filtered = getData();
+
+        if (data.dateMin !== '' && data.dateMin !== undefined) {
+            filtered = filtered.filter(event => {
+                return event.dateDebut >= minD && event.dateDebut <= maxD;
+            })
+        }
+
+        if (data.prixMin !== '' && data.prixMin !== undefined) {
+            filtered = filtered.filter(event => {
+                return event.prix >= data.prixMin && event.prix <= data.prixMax;
+            })
+        }
+
+        filtered = filtered.filter(event => {
+            return event.enfant == data.enfant;
+        })
+
+        setEvents(filtered)
+        setLoading(false)
+        // console.log("Filtered", filtered)
+    }
+
+    const onSubmit: SubmitHandler<FormFields> = (data) => {
+        console.log(data)
+        filterData(data)
+        setSearching(true);
     }
 
     return (
         <div>
             <h1>Evenements:</h1>
-            { loading && <p>Loading</p> }
-            { !loading && <EventTable events={events}/> }
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <input type="checkbox" { ...register("enfant") } id=""/>Enfants
+
+                <div>
+                    Date min<input type="date"
+                       {
+                           ...register("dateMin")
+                       }
+                        id=""/>
+                    Date max<input type="date"
+                       {
+                           ...register("dateMax")
+                       }
+                       id=""/>
+                </div>
+                <div>
+                    Prix min<input type="number" step="0.01"
+                        {
+                            ...register("prixMin")
+                        }
+                    id=""/>
+
+                    Prix max<input type="number" step="0.01"
+                       {
+                           ...register("prixMax")
+                       }
+                    />
+                </div>
+                <button type="submit" >Filtrer</button>
+            </form>
+
+            {searching && <h2>Le résultat de votre recherche:</h2>}
+            {loading && <p>Loading</p>}
+            {!loading && <EventTable events={events}/>}
 
         </div>
     )
